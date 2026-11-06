@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historia económica | Colombia 1990 - 2025</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body{font-family:'Inter',sans-serif;background:#f6f4ef;color:#1e293b}
+  .serif{font-family:'Fraunces',serif}
+  .tab-btn{border-bottom:3px solid transparent;color:#cbd5e1;transition:.2s}
+  .tab-btn:hover{color:#fff}
+  .tab-btn.active{border-color:#f59e0b;color:#fbbf24}
+  .seg button{padding:.4rem .85rem;border-radius:.6rem;font-size:.75rem;font-weight:600;color:#475569;transition:.15s}
+  .seg button.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .card{background:#fff;border:1px solid #e7e2d6;border-radius:1.25rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .clue{border:2px solid #e7e2d6;border-radius:1rem;padding:1rem;text-align:left;background:#fff;transition:.15s;cursor:pointer}
+  .clue:hover{border-color:#f59e0b}
+  .clue.on{border-color:#b45309;background:#fffbeb}
+  .opt{border:2px solid #e7e2d6;border-radius:.75rem;padding:.55rem 1.1rem;font-weight:600;font-size:.85rem;background:#fff;transition:.15s}
+  .opt:hover:not(:disabled){border-color:#f59e0b}
+  .opt.ok{border-color:#059669;background:#ecfdf5;color:#047857}
+  .opt.bad{border-color:#dc2626;background:#fef2f2;color:#b91c1c}
+  ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="bg-slate-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div class="pb-4">
+      <p class="text-[11px] uppercase tracking-[.2em] text-amber-400 font-semibold">Colombia · 1990 – 2025</p>
+      <h1 class="serif text-3xl sm:text-4xl font-extrabold leading-tight">Historia económica</h1>
+      <p class="text-sm text-slate-300 mt-1">Inflación, comparación con la región e historia del banco central</p>
+    </div>
+    <nav class="flex gap-5 sm:gap-6 text-sm font-semibold">
+      <button onclick="switchTab('datosTab')" id="tabBtn-datosTab" class="tab-btn active py-3"><i class="fas fa-chart-line mr-2 text-xs"></i>Inflación</button>
+      <button onclick="switchTab('regionTab')" id="tabBtn-regionTab" class="tab-btn py-3"><i class="fas fa-earth-americas mr-2 text-xs"></i>Comparación región</button>
+      <button onclick="switchTab('banrepTab')" id="tabBtn-banrepTab" class="tab-btn py-3"><i class="fas fa-landmark mr-2 text-xs"></i>Banco de la República</button>
+    </nav>
+  </div>
+</header>
+
+<main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+<!-- ================= TAB INFLACIÓN ================= -->
+<div id="datosTab" class="tab-content space-y-8">
+
+  <section class="card p-6 sm:p-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+      <div class="lg:w-1/3">
+        <h2 class="serif text-2xl font-extrabold text-slate-900">Consulta por año</h2>
+        <p class="text-sm text-slate-500 mt-1">Escribe un año entre 1990 y 2025 y mira cuánto fue la inflación, cuánto creció la economía y cuánto se acumuló.</p>
+        <div class="flex items-center gap-2 mt-4">
+          <button onclick="stepYear(-1)" class="w-10 h-10 rounded-xl border border-slate-200 hover:bg-slate-50"><i class="fas fa-chevron-left text-xs"></i></button>
+          <input id="yearInput" type="number" min="1990" max="2025" value="2022" oninput="onYearInput()" class="w-28 h-10 text-center text-xl font-bold rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <button onclick="stepYear(1)" class="w-10 h-10 rounded-xl border border-slate-200 hover:bg-slate-50"><i class="fas fa-chevron-right text-xs"></i></button>
+        </div>
+        <p id="yearError" class="text-xs text-red-600 mt-2 hidden">Ingresa un año entre 1990 y 2025.</p>
+      </div>
+      <div id="yearResult" class="lg:w-2/3 grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </div>
+    <div id="yearNote" class="mt-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-950 flex flex-wrap items-center justify-between gap-3"></div>
+  </section>
+
+  <section id="summaryCards" class="grid grid-cols-2 md:grid-cols-4 gap-4"></section>
+
+  <section class="card p-6 sm:p-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+      <div>
+        <h2 class="serif text-2xl font-extrabold text-slate-900">Inflación y crecimiento económico</h2>
+        <p id="chartSubtitle" class="text-xs text-slate-500 mt-1"></p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <div class="seg flex bg-slate-100 p-1 rounded-xl" id="viewSeg">
+          <button class="on" data-v="main">Anual</button>
+          <button data-v="acum">Acumulado</button>
+        </div>
+        <div class="seg flex bg-slate-100 p-1 rounded-xl" id="typeSeg">
+          <button class="on" data-t="line">Líneas</button>
+          <button data-t="bar">Barras</button>
+        </div>
+      </div>
+    </div>
+    <div class="relative w-full h-[340px] sm:h-[420px]"><canvas id="economicChart"></canvas></div>
+    <p class="text-xs text-slate-400 mt-3">Haz clic en un punto para consultar ese año.</p>
+  </section>
+
+  <section class="card p-6 sm:p-8">
+    <h2 class="serif text-2xl font-extrabold text-slate-900">Calculadora de inflación acumulada</h2>
+    <p class="text-sm text-slate-500 mt-1">Cuánto subieron los precios en un período y cuánto vale hoy un monto de antes (cierres de diciembre, ambos años incluidos).</p>
+    <div class="grid md:grid-cols-4 gap-4 mt-5">
+      <label class="text-xs font-semibold text-slate-500">Desde
+        <select id="calcFrom" onchange="runCalc()" class="mt-1 w-full py-2 px-3 rounded-xl border border-slate-300 text-sm text-slate-800"></select></label>
+      <label class="text-xs font-semibold text-slate-500">Hasta
+        <select id="calcTo" onchange="runCalc()" class="mt-1 w-full py-2 px-3 rounded-xl border border-slate-300 text-sm text-slate-800"></select></label>
+      <label class="text-xs font-semibold text-slate-500 md:col-span-2">Monto en pesos del año inicial
+        <input id="calcAmount" type="number" value="100000" min="0" oninput="runCalc()" class="mt-1 w-full py-2 px-3 rounded-xl border border-slate-300 text-sm text-slate-800"></label>
+    </div>
+    <div id="calcResult" class="grid sm:grid-cols-3 gap-3 mt-5"></div>
+  </section>
+
+  <section class="card p-6 sm:p-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      <div>
+        <h2 class="serif text-2xl font-extrabold text-slate-900">Registro año a año</h2>
+        <p class="text-xs text-slate-500 mt-1">Los años con hito importante están marcados con ●</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input id="searchInput" oninput="filterYears()" placeholder="Buscar año o evento…" class="pl-9 pr-4 py-2 rounded-xl text-sm bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <select id="decadeFilter" onchange="filterYears()" class="py-2 px-3 rounded-xl text-sm bg-slate-50 border border-slate-200">
+          <option value="all">Todas las décadas</option><option value="1990">1990 - 1999</option><option value="2000">2000 - 2009</option><option value="2010">2010 - 2019</option><option value="2020">2020 - 2025</option>
+        </select>
+        <label class="flex items-center gap-2 text-xs font-semibold text-slate-600"><input type="checkbox" id="keyOnly" onchange="filterYears()" class="accent-amber-600"> Solo hitos clave</label>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead><tr class="border-b border-slate-200 text-[11px] uppercase text-slate-400 tracking-wider">
+          <th class="py-3 px-3">Año</th><th class="py-3 px-3">Inflación</th><th class="py-3 px-3">Acumulada desde 1990</th><th class="py-3 px-3">Hito</th>
+        </tr></thead>
+        <tbody id="yearsTableBody" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- ================= TAB COMPARACIÓN REGIÓN ================= -->
+<div id="regionTab" class="tab-content hidden space-y-8">
+
+  <section class="card p-6 sm:p-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+      <div class="lg:w-1/3">
+        <h2 class="serif text-2xl font-extrabold text-slate-900">Comparación región</h2>
+        <p class="text-sm text-slate-500 mt-1">Elige un país y un año para ver inflación y crecimiento del PIB frente a Colombia.</p>
+        <label class="block text-xs font-semibold text-slate-500 mt-4">Comparar Colombia con
+          <select id="countrySel" onchange="renderRegion()" class="mt-1 w-full py-2 px-3 rounded-xl border border-slate-300 text-sm text-slate-800">
+            <option value="chile">Chile</option><option value="peru">Perú</option><option value="mexico">México</option><option value="brasil">Brasil</option><option value="argentina">Argentina</option>
+          </select></label>
+        <label class="block text-xs font-semibold text-slate-500 mt-3">Año
+          <input id="regYear" type="number" min="1990" max="2025" value="2022" oninput="renderRegYear()" class="mt-1 w-full py-2 px-3 rounded-xl border border-slate-300 text-sm text-slate-800"></label>
+      </div>
+      <div id="regYearResult" class="lg:w-2/3 grid grid-cols-2 gap-3"></div>
+    </div>
+  </section>
+
+  <!-- Inflación -->
+  <section class="card p-6 sm:p-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+      <div>
+        <h2 class="serif text-2xl font-extrabold text-slate-900">Inflación: Colombia vs. <span class="cname">Chile</span></h2>
+        <p class="text-xs text-slate-500 mt-1">Variación anual del IPC, diciembre a diciembre.</p>
+      </div>
+      <div class="seg flex bg-slate-100 p-1 rounded-xl" id="infSeg">
+        <button class="on" data-p="1996">Desde 1996</button>
+        <button data-p="1990">Desde 1990 (recortado a 60%)</button>
+      </div>
+    </div>
+    <div class="relative w-full h-[340px] sm:h-[400px]"><canvas id="infChart"></canvas></div>
+    <p id="infNote" class="text-xs text-slate-400 mt-3"></p>
+  </section>
+  <section id="infStats" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></section>
+
+  <!-- PIB -->
+  <section class="card p-6 sm:p-8">
+    <div class="mb-5">
+      <h2 class="serif text-2xl font-extrabold text-slate-900">Crecimiento del PIB: Colombia vs. <span class="cname">Chile</span></h2>
+      <p class="text-xs text-slate-500 mt-1">Variación anual del PIB real.</p>
+    </div>
+    <div class="relative w-full h-[340px] sm:h-[400px]"><canvas id="regionChart"></canvas></div>
+  </section>
+  <section id="regionStats" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></section>
+
+  <section class="card p-6 sm:p-8">
+    <h3 class="serif text-xl font-extrabold text-slate-900">Promedio por década</h3>
+    <div class="overflow-x-auto mt-4">
+      <table class="w-full text-sm text-left">
+        <thead><tr class="border-b border-slate-200 text-[11px] uppercase text-slate-400 tracking-wider">
+          <th class="py-3 px-3">Década</th><th class="py-3 px-3">PIB Colombia</th><th class="py-3 px-3">PIB <span class="cname">Chile</span></th><th class="py-3 px-3">Diferencia</th>
+        </tr></thead>
+        <tbody id="decadeBody" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+    <p class="text-xs text-slate-400 mt-4">Datos de los otros países: cifras aproximadas basadas en series del Banco Mundial, el FMI y los bancos centrales; pueden diferir por revisiones. Verifica en la fuente oficial antes de usarlas en trabajos formales.</p>
+  </section>
+</div>
+
+<!-- ================= TAB BANREP ================= -->
+<div id="banrepTab" class="tab-content hidden space-y-8">
+
+  <!-- Interactivo -->
+  <section class="card p-6 sm:p-8 border-2 border-amber-600">
+    <div class="grid sm:grid-cols-2 gap-3" id="clueGrid"></div>
+    <div id="clueDetail" class="mt-4 rounded-2xl bg-stone-50 border border-stone-200 p-5 text-sm text-slate-700 leading-relaxed">
+      Selecciona una pista para ver el detalle.
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-stone-200">
+      <h3 class="serif text-lg font-extrabold text-slate-900">Pon a prueba lo aprendido</h3>
+      <div id="quiz" class="mt-3 space-y-5"></div>
+      <p id="quizScore" class="text-sm font-semibold text-amber-800 mt-4"></p>
+    </div>
+  </section>
+
+  <!-- Línea de tiempo -->
+  <section class="card p-6 sm:p-10">
+    <div class="max-w-3xl mb-10">
+      <p class="text-[11px] uppercase tracking-[.2em] text-amber-700 font-semibold">Institucionalidad monetaria</p>
+      <h2 class="serif text-3xl font-extrabold text-slate-900 mt-1">Historia del Banco de la República</h2>
+      <p class="text-slate-600 mt-3 leading-relaxed">Es el banco central de Colombia: emite el peso, actúa como banco de los bancos y dirige la política monetaria. Hoy su objetivo es mantener una inflación baja y estable y alcanzar el máximo nivel sostenible de producto y empleo.</p>
+    </div>
+    <div class="relative border-l-2 border-amber-600 ml-3 sm:ml-6 space-y-8" id="timeline"></div>
+  </section>
+</div>
+</main>
+
+<footer class="border-t border-stone-200 py-6 mt-8">
+  <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+    <p>Fuentes: Banco de la República, DANE; comparación regional: Banco Mundial, FMI y bancos centrales (cifras aproximadas).</p>
+    <p class="mt-1">Historia económica · 1990 – 2025</p>
+  </div>
+</footer>
+
+<script>
+/* [año, IPC dic-dic %, PIB %, etiqueta, hito (una línea, sin PIB), clave] */
+const RAW = [
+[1990,32.36,4.3,"Apertura económica","Inicia la apertura; la inflación más alta del período.",1],
+[1991,26.82,2.4,"Nueva Constitución","Autonomía del Banco de la República.",1],
+[1992,25.13,4.0,"Apagón","Racionamiento eléctrico por El Niño.",1],
+[1993,22.60,5.4,"Boom de consumo","Fuerte expansión del crédito y las importaciones.",0],
+[1994,22.59,5.1,"Cusiana","Arranca la producción petrolera de Cusiana y Cupiagua.",0],
+[1995,19.46,5.2,"Restricción monetaria","Alza de tasas para frenar el crédito.",0],
+[1996,21.63,2.1,"Desaceleración","Descertificación de EE.UU. y enfriamiento económico.",0],
+[1997,17.68,3.4,"Burbuja hipotecaria","Auge de la deuda en UPAC.",0],
+[1998,16.70,0.6,"Crisis asiática","Contagio externo y tasas muy altas.",0],
+[1999,9.23,-4.2,"Crisis del UPAC","Colapso hipotecario; el peso pasa a flotar.",1],
+[2000,8.75,2.9,"Inflación objetivo","Régimen formal de meta de inflación.",1],
+[2001,7.65,1.7,"Choque externo","Efectos del 11-S y caída del café.",0],
+[2002,6.99,2.5,"Seguridad democrática","Mejora la confianza de los inversionistas.",0],
+[2003,6.49,3.9,"Superciclo","Bonanza de petróleo, carbón y metales.",0],
+[2004,5.50,5.3,"Inflación de un dígito","La inflación se estabiliza por debajo de 10%.",0],
+[2005,4.85,4.7,"Revaluación","Entra inversión extranjera y el peso se aprecia.",0],
+[2006,4.48,6.7,"Fuerte expansión","Inversión privada y exportaciones al alza.",0],
+[2007,5.69,6.9,"Pico pre-crisis","Máximo crecimiento antes de la crisis global.",1],
+[2008,7.67,3.5,"Crisis subprime","Recesión mundial y choque en alimentos.",1],
+[2009,2.00,1.1,"Recorte de tasas","El BanRep baja tasas para reactivar el crédito.",0],
+[2010,3.17,4.5,"Ola invernal","Inundaciones por La Niña.",0],
+[2011,3.73,6.9,"Auge petrolero","Producción cercana al millón de barriles diarios.",0],
+[2012,2.44,3.9,"TLC con EE.UU.","Entra en vigencia el tratado.",0],
+[2013,1.94,4.9,"Paro agrario","Protestas por costos de insumos.",0],
+[2014,3.66,4.5,"Caída del petróleo","El Brent cae de US$110 a menos de US$50.",1],
+[2015,6.77,3.0,"Devaluación","El dólar supera los $3.000 y sube la inflación.",1],
+[2016,5.75,2.1,"El Niño y paro camionero","Sequía y 45 días de paro de transporte.",0],
+[2017,4.09,1.4,"IVA al 19%","Sube el IVA del 16% al 19%.",0],
+[2018,3.18,2.6,"Migración venezolana","Mayor gasto social e informalidad.",0],
+[2019,3.80,3.2,"Consumo de hogares","Crecimiento impulsado por el consumo.",0],
+[2020,1.61,-7.3,"Pandemia COVID-19","Confinamientos; la inflación toca su mínimo y la tasa baja a 1,75%.",1],
+[2021,5.62,10.7,"Reapertura y Paro Nacional","La demanda se reactiva y se rompen cadenas logísticas.",1],
+[2022,13.12,7.3,"Inflación global","Guerra en Ucrania; la inflación más alta del siglo XXI.",1],
+[2023,9.28,0.6,"Tasa al 13,25%","El BanRep sube la tasa de intervención al máximo.",1],
+[2024,5.20,1.7,"Ajuste monetario","La inflación cede y empiezan los recortes de tasa.",0],
+[2025,5.10,2.6,"Estabilización","Convergencia gradual hacia la meta de 3%.",0]
+];
+const DATA = RAW.map(r=>({year:r[0],ipc:r[1],pib:r[2],tag:r[3],note:r[4],key:!!r[5]}));
+let idx=1, pidx=1; DATA.forEach(d=>{idx*=1+d.ipc/100; d.accIdx=idx; d.acc=(idx-1)*100; pidx*=1+d.pib/100; d.pibIdx=pidx; d.pibAcc=(pidx-1)*100;});
+const byYear = y => DATA.find(d=>d.year===y);
+const YEARS = DATA.map(d=>d.year);
+const LAST = DATA[DATA.length-1];
+
+/* Otros países, 1990-2025 (aprox.). pib = crecimiento real %, inf = IPC dic-dic % */
+const REG = {
+ chile:{name:"Chile",
+  pib:[3.7,8.0,12.3,7.0,5.7,10.6,7.4,6.6,3.2,-0.4,5.3,3.3,3.1,4.0,7.2,5.9,6.3,4.9,3.6,-1.6,5.8,6.1,5.3,4.0,1.8,2.2,1.8,1.4,4.0,0.6,-6.1,11.3,2.1,0.2,2.6,2.4],
+  inf:[27.3,18.7,12.7,12.2,8.9,8.2,6.6,6.0,4.7,2.3,4.5,2.6,2.8,1.1,2.4,3.7,2.6,7.8,7.1,-1.4,3.0,4.4,1.5,3.0,4.6,4.4,2.7,2.3,2.6,3.0,3.0,7.2,12.8,3.9,4.5,3.5]},
+ peru:{name:"Perú",
+  pib:[-5.1,2.2,-0.4,4.8,12.8,8.6,2.5,6.9,-0.4,1.5,2.7,0.6,5.5,4.2,5.0,6.3,7.5,8.5,9.1,1.1,8.3,6.3,6.1,5.9,2.4,3.3,4.0,2.5,4.0,2.2,-10.9,13.4,2.7,-0.4,3.3,3.3],
+  inf:[7650,139,57,40,15.4,10.2,11.8,6.5,6.0,3.7,3.7,-0.1,1.5,2.5,3.5,1.5,1.1,3.9,6.7,0.2,2.1,4.7,2.6,2.9,3.2,4.4,3.2,1.4,2.0,1.9,2.0,6.4,8.5,3.2,2.0,1.5]},
+ mexico:{name:"México",
+  pib:[5.1,4.2,3.6,2.0,4.7,-6.3,6.8,6.8,5.0,3.8,6.6,0.0,0.5,1.4,3.9,2.3,4.5,2.3,1.1,-5.3,5.1,3.7,3.6,1.4,2.8,3.3,2.6,2.1,2.2,-0.2,-8.4,6.0,3.7,3.3,1.4,0.5],
+  inf:[29.9,18.8,11.9,8.0,7.1,52.0,27.7,15.7,18.6,12.3,9.0,4.4,5.7,4.0,5.2,3.3,4.1,3.8,6.5,3.6,4.4,3.8,3.6,4.0,4.1,2.1,3.4,6.8,4.8,2.8,3.2,7.4,7.8,4.7,4.2,3.7]},
+ brasil:{name:"Brasil",
+  pib:[-4.2,1.0,-0.5,4.9,5.9,4.2,2.2,3.4,0.3,0.5,4.1,1.4,3.1,1.1,5.8,3.2,4.0,6.1,5.1,-0.1,7.5,4.0,1.9,3.0,0.5,-3.5,-3.3,1.3,1.8,1.2,-3.3,4.8,3.0,3.2,3.4,2.3],
+  inf:[1795,481,1158,2709,929,22.4,9.6,5.2,1.7,8.9,6.0,7.7,12.5,9.3,7.6,5.7,3.1,4.5,5.9,4.3,5.9,6.5,5.8,5.9,6.4,10.7,6.3,2.9,3.8,4.3,4.5,10.1,5.8,4.6,4.8,4.3]},
+ argentina:{name:"Argentina",
+  pib:[-2.0,10.5,9.6,5.7,5.8,-2.8,5.5,8.1,3.9,-3.4,-0.8,-4.4,-10.9,9.0,8.9,8.9,8.0,9.0,4.1,-5.9,10.1,6.0,-1.0,2.4,-2.5,2.7,-2.1,2.8,-2.6,-2.0,-9.9,10.7,5.0,-1.6,-1.7,4.4],
+  inf:[1344,84,17.5,7.4,3.9,1.6,0.1,0.3,0.7,-1.8,-0.7,-1.5,41,3.7,6.1,12.3,9.8,8.5,7.2,7.7,10.9,9.5,10.8,10.9,23.9,27.5,40.3,24.8,47.6,53.8,36.1,50.9,94.8,211.4,117.8,31.0]}
+};
+const fmt=(n,dec=2)=>n.toLocaleString('es-CO',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const sgn=n=>(n>0?'+':'')+fmt(n,1)+'%';
+const avg=a=>a.reduce((s,x)=>s+x,0)/a.length;
+const colorBox=(l,v,col,s)=>`<div class="rounded-2xl bg-stone-50 border border-stone-200 p-4"><div class="text-[11px] uppercase font-semibold tracking-wider text-slate-400">${l}</div><div class="serif text-2xl font-extrabold mt-1 ${col}">${v}</div><div class="text-[11px] text-slate-500 mt-1">${s}</div></div>`;
+
+/* ---------- Tabs ---------- */
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('tabBtn-'+id).classList.add('active');
+  if(id==='regionTab') renderRegion();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Tarjetas resumen ---------- */
+function renderSummary(){
+  const maxI=DATA.reduce((a,b)=>b.ipc>a.ipc?b:a), minI=DATA.reduce((a,b)=>b.ipc<a.ipc?b:a);
+  let bigUp=null,bigDown=null;
+  for(let i=1;i<DATA.length;i++){const d=DATA[i].ipc-DATA[i-1].ipc;
+    if(!bigUp||d>bigUp.d) bigUp={d,y:DATA[i].year}; if(!bigDown||d<bigDown.d) bigDown={d,y:DATA[i].year};}
+  const inRange=DATA.filter(d=>d.year>=2000&&d.ipc>=2&&d.ipc<=4).length;
+  const c=(l,v,col,s)=>`<div class="card p-5"><span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">${l}</span><div class="serif text-3xl font-extrabold mt-1 ${col}">${v}</div><p class="text-xs text-slate-500 mt-1">${s}</p></div>`;
+  document.getElementById('summaryCards').innerHTML=
+    c('Inflación más alta',fmt(maxI.ipc)+'%','text-red-600',maxI.year+' · '+maxI.tag)+
+    c('Inflación más baja',fmt(minI.ipc)+'%','text-emerald-600',minI.year+' · '+minI.tag)+
+    c('Precios desde 1990','×'+fmt(LAST.accIdx,1),'text-amber-700','Acumulada: '+Math.round(LAST.acc).toLocaleString('es-CO')+'%')+
+    c('Inflación promedio',fmt(avg(DATA.map(d=>d.ipc)))+'%','text-slate-900','Media anual 1990–2025')+
+    c('Años con dos dígitos',DATA.filter(d=>d.ipc>=10).length,'text-red-600','1990–2000 y 2022')+
+    c('Años dentro del rango meta',inRange+' de 26','text-emerald-600','Entre 2% y 4% desde el 2000')+
+    c('Mayor baja en un año','−'+fmt(Math.abs(bigDown.d),1)+' pp','text-emerald-600','En '+bigDown.y)+
+    c('Mayor alza en un año','+'+fmt(bigUp.d,1)+' pp','text-red-600','En '+bigUp.y);
+}
+
+/* ---------- Consulta por año (inflación y PIB) ---------- */
+function showYear(y){
+  const d=byYear(y); if(!d) return;
+  const prev=y>1990?byYear(y-1):null, delta=prev?d.ipc-prev.ipc:null;
+  const toToday=LAST.accIdx/d.accIdx;
+  document.getElementById('yearResult').innerHTML=
+    colorBox('Inflación del año',fmt(d.ipc)+'%','text-red-600','Variación diciembre a diciembre')+
+    colorBox('Crecimiento económico',sgn(d.pib),d.pib<0?'text-red-600':'text-blue-700','Variación anual del PIB real')+
+    colorBox('Crecimiento − inflación',(d.pib-d.ipc>0?'+':'')+fmt(d.pib-d.ipc,1)+' pp',d.pib>=d.ipc?'text-emerald-600':'text-red-600',d.pib>=d.ipc?'La economía creció más que los precios':'Los precios subieron más que la economía')+
+    colorBox('Acumulada desde 1990',fmt(d.acc,0)+'%','text-amber-700','Precios ×'+fmt(d.accIdx,2)+' · PIB ×'+fmt(d.pibIdx,2))+
+    colorBox('$100.000 de ese año','$'+Math.round(100000*toToday).toLocaleString('es-CO'),'text-slate-900','Equivalente a precios de 2025')+
+    colorBox('Frente al año anterior',delta===null?'—':(delta>0?'+':'')+fmt(delta,1)+' pp',delta===null?'text-slate-400':(delta>0?'text-red-600':'text-emerald-600'),delta===null?'Primer año de la serie':'Año anterior: '+fmt(prev.ipc)+'%');
+  document.getElementById('yearNote').innerHTML=
+    `<span><strong>${d.year} · ${d.tag}.</strong> ${d.note}</span><button onclick="openRegion(${d.year})" class="text-xs font-bold text-amber-800 hover:underline whitespace-nowrap">Ver PIB y comparación regional →</button>`;
+}
+function onYearInput(){
+  const v=parseInt(document.getElementById('yearInput').value,10), ok=v>=1990&&v<=2025;
+  document.getElementById('yearError').classList.toggle('hidden',ok||isNaN(v));
+  if(ok) showYear(v);
+}
+function stepYear(s){
+  const i=document.getElementById('yearInput'); let v=parseInt(i.value,10)||2022;
+  i.value=Math.min(2025,Math.max(1990,v+s)); onYearInput();
+}
+function goYear(y){document.getElementById('yearInput').value=y; onYearInput(); window.scrollTo({top:0,behavior:'smooth'});}
+function openRegion(y){document.getElementById('regYear').value=y; switchTab('regionTab');}
+
+/* ---------- Gráfica principal ---------- */
+let chart=null, view='main', ctype='line';
+document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>{view=b.dataset.v;setSeg('viewSeg',b);drawMain();});
+document.querySelectorAll('#typeSeg button').forEach(b=>b.onclick=()=>{ctype=b.dataset.t;setSeg('typeSeg',b);drawMain();});
+function setSeg(id,btn){document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');}
+function mk(label,data,color,bar){
+  return {label,data,borderColor:color,backgroundColor:bar?color:color+'18',borderWidth:2.5,fill:!bar,tension:.25,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:color,borderRadius:bar?3:0};
+}
+function drawMain(){
+  if(chart) chart.destroy();
+  const bar=ctype==='bar', acum=view==='acum';
+  document.getElementById('chartSubtitle').textContent=acum
+    ? 'Cuántas veces se multiplicaron los precios y el PIB real desde 1990 (índice 1989 = 1).'
+    : 'Inflación anual (IPC a diciembre) frente al crecimiento anual del PIB real.';
+  const sets=acum
+    ? [mk('Nivel de precios (×)',DATA.map(d=>+d.accIdx.toFixed(2)),'#b45309',bar),mk('PIB real (×)',DATA.map(d=>+d.pibIdx.toFixed(2)),'#1d4ed8',bar)]
+    : [mk('Inflación IPC (%)',DATA.map(d=>d.ipc),'#dc2626',bar),mk('Crecimiento del PIB (%)',DATA.map(d=>d.pib),'#1d4ed8',bar)];
+  chart=new Chart(document.getElementById('economicChart').getContext('2d'),{type:ctype,data:{labels:YEARS,datasets:sets},options:{
+    responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{usePointStyle:true,font:{family:'Inter',weight:'600'}}},tooltip:{backgroundColor:'#0f172a',padding:12,callbacks:{label:c=>acum?` ${c.dataset.label}: ×${fmt(c.parsed.y,2)}`:` ${c.dataset.label}: ${fmt(c.parsed.y)}%`}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>acum?'×'+v:v+'%'}}},
+    onClick:(e,el)=>{if(el.length) goYear(YEARS[el[0].index]);}
+  }});
+}
+
+/* ---------- Calculadora ---------- */
+function initCalc(){
+  const f=document.getElementById('calcFrom'),t=document.getElementById('calcTo');
+  YEARS.forEach(y=>{f.add(new Option(y,y));t.add(new Option(y,y));});
+  f.value=2015; t.value=2025; runCalc();
+}
+function runCalc(){
+  const a=+document.getElementById('calcFrom').value,b=+document.getElementById('calcTo').value;
+  const amt=+document.getElementById('calcAmount').value||0, out=document.getElementById('calcResult');
+  if(a>b){out.innerHTML='<p class="text-sm text-red-600 sm:col-span-3">El año inicial debe ser menor o igual al final.</p>';return;}
+  const base=a===1990?1:byYear(a-1).accIdx, factor=byYear(b).accIdx/base, yrs=b-a+1;
+  out.innerHTML=colorBox('Inflación acumulada',fmt((factor-1)*100)+'%','text-slate-900',`${a} – ${b} (${yrs} ${yrs===1?'año':'años'})`)+
+    colorBox('Equivalente final','$'+Math.round(amt*factor).toLocaleString('es-CO'),'text-slate-900',`$${Math.round(amt).toLocaleString('es-CO')} de ${a} equivalen a esto en ${b}`)+
+    colorBox('Inflación promedio anual',fmt((Math.pow(factor,1/yrs)-1)*100)+'%','text-slate-900','Promedio geométrico');
+}
+
+/* ---------- Tabla ---------- */
+function renderTable(list){
+  const tb=document.getElementById('yearsTableBody');
+  if(!list.length){tb.innerHTML='<tr><td colspan="4" class="text-center py-8 text-slate-400">Sin resultados.</td></tr>';return;}
+  tb.innerHTML=list.map(d=>`<tr class="hover:bg-stone-50 cursor-pointer" onclick="goYear(${d.year})">
+    <td class="py-3 px-3 font-bold text-slate-900">${d.year} ${d.key?'<span class="text-amber-600" title="Hito clave">●</span>':''}</td>
+    <td class="py-3 px-3 ${d.ipc>10?'text-red-600 font-bold':''}">${fmt(d.ipc)}%</td>
+    <td class="py-3 px-3 text-slate-600">${fmt(d.acc,0)}%</td>
+    <td class="py-3 px-3 text-slate-600"><span class="inline-block px-2 py-0.5 mr-2 rounded text-xs font-semibold bg-stone-100 border border-stone-200 text-slate-700">${d.tag}</span><span class="hidden md:inline">${d.note}</span></td></tr>`).join('');
+}
+function filterYears(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const dec=document.getElementById('decadeFilter').value, key=document.getElementById('keyOnly').checked;
+  renderTable(DATA.filter(d=>{
+    const mq=!q||String(d.year).includes(q)||d.tag.toLowerCase().includes(q)||d.note.toLowerCase().includes(q);
+    const md=dec==='all'||(d.year>=+dec&&d.year<=(+dec===2020?2025:+dec+9));
+    return mq&&md&&(!key||d.key);
+  }));
+}
+
+/* ---------- Comparación región ---------- */
+let rChart=null, iChart=null, infFrom=1996;
+document.querySelectorAll('#infSeg button').forEach(b=>b.onclick=()=>{infFrom=+b.dataset.p;setSeg('infSeg',b);renderInfChart();});
+const sd=a=>{const m=avg(a);return Math.sqrt(avg(a.map(x=>(x-m)**2)));};
+const statCard=(l,v,s)=>`<div class="card p-5"><div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">${l}</div><div class="serif text-2xl font-extrabold text-slate-900 mt-1">${v}</div><div class="text-xs text-slate-500 mt-1">${s}</div></div>`;
+const cur=()=>{const k=document.getElementById('countrySel').value; return {k,R:REG[k]};};
+
+function renderRegYear(){
+  const y=parseInt(document.getElementById('regYear').value,10), box=document.getElementById('regYearResult');
+  if(!(y>=1990&&y<=2025)){box.innerHTML='<p class="text-sm text-red-600 col-span-2">Ingresa un año entre 1990 y 2025.</p>';return;}
+  const {R}=cur(), d=byYear(y), i=y-1990;
+  box.innerHTML=
+    colorBox('Inflación Colombia',fmt(d.ipc)+'%','text-red-600',d.tag)+
+    colorBox('Inflación '+R.name,fmt(R.inf[i],1)+'%','text-slate-900',R.inf[i]>d.ipc?'Mayor que Colombia':'Menor que Colombia')+
+    colorBox('PIB Colombia',sgn(d.pib),d.pib<0?'text-red-600':'text-blue-700','Crecimiento real')+
+    colorBox('PIB '+R.name,sgn(R.pib[i]),R.pib[i]<0?'text-red-600':'text-slate-900',d.pib>=R.pib[i]?'Colombia creció más':'Colombia creció menos');
+}
+
+function renderInfChart(){
+  const {R}=cur(), from=infFrom, off=from-1990, clip=from===1990;
+  const labels=YEARS.slice(off), col=DATA.map(d=>d.ipc).slice(off), oth=R.inf.slice(off);
+  if(iChart) iChart.destroy();
+  iChart=new Chart(document.getElementById('infChart').getContext('2d'),{type:'line',data:{labels,datasets:[
+    {label:'Colombia',data:col,borderColor:'#b45309',backgroundColor:'#b4530918',borderWidth:3,tension:.25,pointRadius:2,pointHoverRadius:6},
+    {label:R.name,data:oth,borderColor:'#0f172a',borderDash:[6,4],borderWidth:2.5,tension:.25,pointRadius:2,pointHoverRadius:6}]},
+   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{usePointStyle:true,font:{family:'Inter',weight:'600'}}},tooltip:{backgroundColor:'#0f172a',padding:12,callbacks:{label:x=>` ${x.dataset.label}: ${fmt(x.parsed.y,1)}%`}}},
+    scales:{x:{grid:{display:false}},y:{max:clip?60:undefined,grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>v+'%'}}},
+    onClick:(e,el)=>{if(el.length){document.getElementById('regYear').value=labels[el[0].index];renderRegYear();}}}});
+  const peaks=[['Colombia',Math.max(...DATA.map(d=>d.ipc).slice(6))],[R.name,Math.max(...R.inf.slice(6))]];
+  document.getElementById('infNote').textContent=clip
+    ? 'Escala recortada a 60%: antes de 1996 algunos países tuvieron hiperinflación (Brasil, Perú y Argentina). Pasa el cursor para ver los valores reales.'
+    : 'Se muestra desde 1996 para que la escala sea legible. Haz clic en un punto para ver ese año arriba.';
+  // estadísticas de inflación 1996-2025
+  const c96=DATA.map(d=>d.ipc).slice(6), o96=R.inf.slice(6);
+  const accum=a=>a.reduce((p,x)=>p*(1+x/100),1);
+  const lower=c96.filter((v,i)=>v<o96[i]).length;
+  const cAcc=(accum(c96)-1)*100, oAcc=(accum(o96)-1)*100;
+  document.getElementById('infStats').innerHTML=
+    statCard('Inflación promedio 1996–2025',fmt(avg(c96),1)+'%',`${R.name}: ${fmt(avg(o96),1)}%`)+
+    statCard('Años con menor inflación que '+R.name,`${lower} de 30`,'Entre 1996 y 2025')+
+    statCard('Inflación acumulada 1996–2025',Math.round(cAcc).toLocaleString('es-CO')+'%',`${R.name}: ${Math.round(oAcc).toLocaleString('es-CO')}%`)+
+    statCard('Pico de inflación desde 1996',fmt(Math.max(...c96),1)+'%',`${R.name}: ${fmt(Math.max(...o96),1)}%`);
+}
+
+function renderRegion(){
+  const {R}=cur();
+  document.querySelectorAll('.cname').forEach(e=>e.textContent=R.name);
+  renderRegYear(); renderInfChart();
+  const col=DATA.map(d=>d.pib), oth=R.pib;
+  if(rChart) rChart.destroy();
+  rChart=new Chart(document.getElementById('regionChart').getContext('2d'),{type:'line',data:{labels:YEARS,datasets:[
+    {label:'Colombia',data:col,borderColor:'#1d4ed8',backgroundColor:'#1d4ed818',borderWidth:3,tension:.25,pointRadius:2,pointHoverRadius:6},
+    {label:R.name,data:oth,borderColor:'#0f172a',borderDash:[6,4],borderWidth:2.5,tension:.25,pointRadius:2,pointHoverRadius:6}]},
+   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{usePointStyle:true,font:{family:'Inter',weight:'600'}}},tooltip:{backgroundColor:'#0f172a',padding:12,callbacks:{label:x=>` ${x.dataset.label}: ${fmt(x.parsed.y,1)}%`}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>v+'%'}}},
+    onClick:(e,el)=>{if(el.length){document.getElementById('regYear').value=YEARS[el[0].index];renderRegYear();}}}});
+  const wins=YEARS.filter((y,i)=>col[i]>oth[i]).length;
+  document.getElementById('regionStats').innerHTML=
+    statCard('PIB promedio Colombia',fmt(avg(col),1)+'%',`${R.name}: ${fmt(avg(oth),1)}%`)+
+    statCard('Años en que Colombia creció más',`${wins} de 36`,'vs. '+R.name)+
+    statCard('Volatilidad (desv. estándar)',fmt(sd(col),1)+' pp',`${R.name}: ${fmt(sd(oth),1)} pp`)+
+    statCard('Peor año',fmt(Math.min(...col),1)+'%',`${R.name}: ${fmt(Math.min(...oth),1)}%`);
+  document.getElementById('decadeBody').innerHTML=[[1990,1999],[2000,2009],[2010,2019],[2020,2025]].map(([a,b])=>{
+    const cc=avg(col.slice(a-1990,b-1990+1)), oo=avg(oth.slice(a-1990,b-1990+1)), df=cc-oo;
+    return `<tr><td class="py-3 px-3 font-bold">${a} – ${b}</td><td class="py-3 px-3">${fmt(cc,1)}%</td><td class="py-3 px-3">${fmt(oo,1)}%</td><td class="py-3 px-3 font-semibold ${df>=0?'text-emerald-700':'text-red-600'}">${df>=0?'+':''}${fmt(df,1)} pp</td></tr>`;}).join('');
+}
+
+/* ---------- Banco de la República: pistas del nombre ---------- */
+const CLUES=[
+ {t:"El nombre es anterior a Kemmerer",k:"doc",
+  b:"<p>La Ley 30 de 1922 ya autorizaba crear un banco con el nombre de <strong>Banco de la República</strong>, un año antes de que llegara la Misión Kemmerer (marzo de 1923). La Ley 117, sancionada por el presidente Pedro Nel Ospina el 30 de diciembre de 1922, la adicionó y reformó.</p><p class='mt-2'>Es decir: el nombre salió del Congreso colombiano, no de los expertos extranjeros. La Misión después redactó el estatuto orgánico (Ley 25 de 1923).</p>"},
+ {t:"Ya existían bancos «Nacional» y privados",k:"doc",
+  b:"<p>Colombia ya había tenido un <strong>Banco Nacional</strong>, creado en 1880 durante la Regeneración de Rafael Núñez, y bancos privados con nombres de ciudad o apellido, como el Banco de Bogotá o el Banco López (cuya quiebra ocurrió pocos días antes de abrir el nuevo banco).</p>"},
+];
+function renderClues(){
+  const g=document.getElementById('clueGrid');
+  g.innerHTML=CLUES.map((c,i)=>`<button class="clue" id="clue${i}" onclick="showClue(${i})">
+    <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${c.k==='doc'?'bg-emerald-100 text-emerald-800':'bg-violet-100 text-violet-800'}">${c.k==='doc'?'Documentado':'Interpretación'}</span>
+    <div class="font-bold text-slate-900 text-sm mt-2">${c.t}</div></button>`).join('');
+}
+function showClue(i){
+  CLUES.forEach((c,j)=>document.getElementById('clue'+j).classList.toggle('on',i===j));
+  document.getElementById('clueDetail').innerHTML=CLUES[i].b;
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ=[
+ {q:"La Misión Kemmerer fue quien escogió el nombre «Banco de la República» en 1923.",a:false,e:"Falso: la Ley 30 de 1922 ya usaba ese nombre."},
+ {q:"En 1923 el banco nació como sociedad anónima, con el Gobierno aportando la mitad del capital.",a:true,e:"Verdadero: capital de 10 millones de pesos oro, 50% del Gobierno."},
+ {q:"La Junta Monetaria se creó con la Constitución de 1991.",a:false,e:"Falso: se creó en 1963; la Constitución de 1991 la reemplazó por una Junta Directiva independiente."}
+];
+let quizDone=0, quizOk=0;
+function renderQuiz(){
+  document.getElementById('quiz').innerHTML=QUIZ.map((x,i)=>`<div>
+    <p class="text-sm font-semibold text-slate-800">${i+1}. ${x.q}</p>
+    <div class="flex gap-2 mt-2"><button class="opt" id="q${i}t" onclick="answer(${i},true)">Verdadero</button><button class="opt" id="q${i}f" onclick="answer(${i},false)">Falso</button></div>
+    <p id="q${i}e" class="text-xs text-slate-600 mt-2 hidden"></p></div>`).join('');
+}
+function answer(i,v){
+  const x=QUIZ[i], right=v===x.a;
+  ['t','f'].forEach(s=>{const b=document.getElementById('q'+i+s); b.disabled=true;
+    const isAns=(s==='t')===x.a; if(isAns) b.classList.add('ok'); else if((s==='t')===v) b.classList.add('bad');});
+  const e=document.getElementById('q'+i+'e'); e.textContent=(right?'¡Correcto! ':'Casi. ')+x.e; e.classList.remove('hidden');
+  quizDone++; if(right) quizOk++;
+  if(quizDone===QUIZ.length) document.getElementById('quizScore').textContent=`Resultado: ${quizOk} de ${QUIZ.length}`;
+}
+
+/* ---------- Línea de tiempo detallada ---------- */
+const TL=[
+ {d:"1880",t:"Antecedente: el Banco Nacional",p:"Bajo la Regeneración de Rafael Núñez, el Gobierno crea el Banco Nacional como su agente financiero y emisor de billetes, con curso forzoso. Es el primer intento de un banco central, pero termina ligado a la inflación y al desorden monetario de la época."},
+ {d:"1903",t:"Ley 33: se frena la emisión",p:"Tras la Guerra de los Mil Días se restablece la confianza: el peso es la unidad monetaria de la Nación, se prohíbe emitir más papel moneda y se crea la Junta Nacional de Amortización."},
+ {d:"1922 – 1923",t:"Nacimiento y Misión Kemmerer",key:1,p:"Con el nombre ya fijado en la Ley 30 de 1922, el presidente Pedro Nel Ospina contrata a la misión del profesor Edwin W. Kemmerer, que llega en marzo de 1923. Presenta 10 proyectos de ley y el Congreso aprueba 8.",
+  l:["<strong>Ley 25 (11 de julio de 1923):</strong> estatuto orgánico del banco. Abre sus puertas el <strong>23 de julio de 1923</strong>.","Sociedad anónima con capital de 10 millones de pesos oro; el 50% lo aporta el Gobierno.","Única institución autorizada para emitir billetes y monedas, bajo el patrón oro.","Junta Directiva de 10 miembros, con representantes del Gobierno y del sector privado.","Ley 45: reglamenta la banca privada y crea la Superintendencia Bancaria."]},
+ {d:"1930 – 1931",t:"Segunda Misión Kemmerer",p:"La Ley 82 de 1931 cambia la Junta Directiva e incorpora gremios como la Federación Nacional de Cafeteros y las cámaras de comercio, para dar más voz a los sectores de la economía."},
+ {d:"1963",t:"Junta Monetaria",p:"La Ley 21 de 1963 crea la Junta Monetaria, autoridad monetaria, cambiaria y crediticia, formada por ministros y altos funcionarios del Gobierno (Hacienda, Planeación, Fomento, Agricultura, Comercio Exterior) y el gerente del Banco. El Banco queda como ejecutor de sus decisiones y, en buena parte, como banco de fomento."},
+ {d:"1973",t:"El Estado pasa a ser dueño",p:"El banco se nacionaliza: las acciones en manos privadas pasan al Estado. Hoy la propiedad del banco es estatal."},
+ {d:"1991 – 1993",t:"Autonomía constitucional",key:1,p:"La Constitución de 1991 lo convierte en un órgano del Estado con autonomía patrimonial, administrativa y técnica, y ordena preservar el poder adquisitivo de la moneda. La Ley 31 de 1992 desarrolla sus funciones y el Decreto 2520 de 1993 expide sus estatutos.",
+  l:["Junta Directiva de 7 miembros: el Ministro de Hacienda, el Gerente General y 5 codirectores de dedicación exclusiva.","La Junta es la autoridad monetaria, cambiaria y crediticia del país.","El banco emite el peso y administra la Fábrica de Moneda (Ibagué)."]},
+ {d:"Septiembre de 1999",t:"Peso flotante e inflación objetivo",p:"En plena crisis del UPAC se abandona la banda cambiaria y el dólar pasa a fluctuar libremente. Se adopta el esquema de inflación objetivo, con una meta que hoy es de 3% (±1 punto)."},
+ {d:"2020 – 2025",t:"Pandemia e inflación global",p:"La tasa de intervención baja a 1,75% en 2020, sube hasta 13,25% entre 2022 y 2023 para frenar la inflación y luego se recorta a medida que el IPC converge a la meta."}
+];
+document.getElementById('timeline').innerHTML=TL.map(t=>`<div class="relative pl-6 sm:pl-10"><div class="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-amber-600 border-4 border-white shadow"></div>
+ <div class="rounded-2xl p-6 ${t.key?'bg-amber-50/60 border-2 border-amber-600':'bg-stone-50 border border-stone-200'}">
+ <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">${t.d}</span>
+ <h3 class="serif text-xl font-extrabold text-slate-900 mt-1">${t.t}</h3>
+ <p class="text-sm text-slate-700 mt-2 leading-relaxed">${t.p}</p>
+ ${t.l?`<ul class="list-disc pl-5 text-sm text-slate-600 mt-3 space-y-1">${t.l.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+ </div></div>`).join('');
+
+/* ---------- Init ---------- */
+window.addEventListener('DOMContentLoaded',()=>{
+  renderSummary(); drawMain(); initCalc(); renderTable(DATA); showYear(2022);
+  renderClues(); showClue(0); renderQuiz();
+});
+</script>
+</body>
+</html>
